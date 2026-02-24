@@ -1,12 +1,5 @@
 <?php
 
-require 'models/Author.php';
-require 'models/Book.php';
-require 'models/Borrower.php';
-require 'models/BookStock.php';
-require 'models/Fine.php';
-require 'models/Reservation.php';
-
 require 'data/data.php';
 
 require 'controllers/BookController.php';

@@ -1,5 +1,12 @@
 <?php
 
+require_once __DIR__ . '/../models/Author.php';
+require_once __DIR__ . '/../models/Book.php';
+require_once __DIR__ . '/../models/Borrower.php';
+require_once __DIR__ . '/../models/BookStock.php';
+require_once __DIR__ . '/../models/Fine.php';
+require_once __DIR__ . '/../models/Reservation.php';
+
 // In-memory storage of data
 
 // Sample authors
