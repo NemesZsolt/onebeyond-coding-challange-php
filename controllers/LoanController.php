@@ -6,10 +6,52 @@ require_once __DIR__ . '/../models/Fine.php';
 
 class LoanController {
     // GET /loans
+    /*
+     * Implement logic to list active loans with borrower and book details.
+     * */
     public function index() {
-        // TODO: Implement logic to list active loans with borrower and book details.
+        global $bookStocks, $borrowers, $books;
+
+        $activeLoans = array_filter($bookStocks, function($stock) {
+            return $stock->isOnLoan;
+        });
+
+        $result = [];
+
+        foreach ($activeLoans as $stock) {
+            // Find borrower
+            $borrower = current(array_filter($borrowers, fn($b) => $b->id === $stock->borrowerId));
+
+            // Find book
+            $book = current(array_filter($books, fn($b) => $b->id == $stock->bookId));
+
+            // Skip inconsistent data
+            if (!$borrower || !$book) continue;
+
+            $result[] = [
+                'borrower' => [
+                    'id' => $borrower->id,
+                    'name' => $borrower->name,
+                    'email' => $borrower->email
+                ],
+                'book' => [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'author_id' => $book->authorId,
+                    'isbn' => $book->isbn,
+                    'format' => $book->format
+                ],
+                'loan_end_date' => $stock->loanEndDate,
+                'stock_id' => $stock->id
+            ];
+
+            /*echo '<pre>' . var_export($book, true) . '</pre>';
+            die();*/
+        }
+
+
         header('Content-Type: application/json');
-        echo json_encode(['message' => 'List active loans functionality to be implemented.']);
+        echo json_encode($result);
     }
     
     // POST /loans/return
