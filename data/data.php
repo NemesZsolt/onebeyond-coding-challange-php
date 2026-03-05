@@ -34,5 +34,7 @@ $bookStocks = [
 ];
 
 // Fines and reservations (empty arrays to start)
-$fines = [];
+$fines = [
+    new Fine(1, 1, 1, 'Overdue return: Alice'),
+];
 $reservations = [];

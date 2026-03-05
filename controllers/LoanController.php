@@ -54,11 +54,77 @@ class LoanController
         echo json_encode($result);
     }
 
-    // POST /loans/return
+    /**
+     * Implement logic to process the return of a book and calculate fines if overdue.
+     *
+     * POST /loans/return
+     * @return void
+     */
     public function returnBook()
     {
-        // TODO: Implement logic to process the return of a book and calculate fines if overdue.
+        global $bookStocks, $fines;
+
+        $stockId = $_POST['stock_id'] ?? null;
+
+        if (!$stockId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing stock_id']);
+            return;
+        }
+
+        // Find the stock record
+        $stockIndex = null;
+        foreach ($bookStocks as $index => $stock) {
+            if ($stock->id == $stockId) {
+                $stockIndex = $index;
+                break;
+            }
+        }
+
+        if ($stockIndex === null) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Stock not found']);
+            return;
+        }
+
+        $stock = $bookStocks[$stockIndex];
+
+        if (!$stock->isOnLoan) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Book is not currently on loan']);
+            return;
+        }
+
+        // Calculate overdue fine (if any)
+        $today = date('Y-m-d');
+        $fineAmount = 0;
+        if ($stock->loanEndDate && $stock->loanEndDate < $today) {
+            $end = new DateTime($stock->loanEndDate);
+            $now = new DateTime($today);
+            $daysOverdue = $end->diff($now)->days;
+            $fineAmount = $daysOverdue * 1; //1 per day
+        }
+
+        // Create fine record if overdue
+        if ($fineAmount > 0) {
+            $newFineId = empty($fines) ? 1 : max(array_column($fines, 'id')) + 1;
+            $fines[] = new Fine(
+                $newFineId,
+                $stock->borrowerId,
+                $fineAmount,
+                "Overdue return of stock ID $stockId (due $stock->loanEndDate)"
+            );
+        }
+
+        // Mark the book as returned
+        $stock->isOnLoan = false;
+        $stock->loanEndDate = null;
+        $stock->borrowerId = null;
+
         header('Content-Type: application/json');
-        echo json_encode(['message' => 'Return book functionality to be implemented.']);
+        echo json_encode([
+            'message' => 'Book returned successfully',
+            'fine_charged' => $fineAmount
+        ]);
     }
 }
